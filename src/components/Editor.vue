@@ -1,7 +1,5 @@
 <template>
   <div id='ed'>
-    <h2>Create blogpost</h2>
-	<br>
 	Blog title: <input type="text" v-model="name" placeholder="Blog title">
 	<br>
 	<br>
@@ -31,10 +29,14 @@
 </template>
 
 <script>
+
+
+
 export default {
 	name: "editor",
 	data: function() {
 		return {
+			_id:"",
 			name:"",
 			html: "",
 			cover:"",
@@ -42,6 +44,16 @@ export default {
 			category:""
 		};
 	}, 
+	mounted:function(){
+		if(document.querySelector('#editedBlog')){
+			this._id = document.querySelector('#editedBlogID').innerHTML;
+			this.name = document.querySelector('#editedBlogName').innerHTML;
+			this.preview = document.querySelector('#editedBlogPreview').innerHTML;
+			this.cover = document.querySelector('#editedBlogCover').innerHTML;
+			this.category = document.querySelector('#editedBlogCategory').innerHTML;
+			this.html = document.querySelector('#editedBlogHTML').innerHTML;
+		}
+	},
 	methods:{
 		onImgLoad:function(dataURI){
 			this.cover = dataURI;
@@ -57,7 +69,7 @@ export default {
 					},
 					credentials: "same-origin",
 					method: "POST",
-					body: JSON.stringify({name:this.name,html: this.html,preview:this.preview,cover:this.cover,category:this.category})
+					body: JSON.stringify({_id:this._id,name:this.name,html: this.html,preview:this.preview,cover:this.cover,category:this.category})
 				})
 				.then(function(res){ 
 					console.log(res);
