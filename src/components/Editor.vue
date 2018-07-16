@@ -6,11 +6,14 @@
 	Blog preview sentence: <input type="text" v-model="preview" placeholder="One sentence preview/description of blog">
 	<br>
 	<br>
-	Blog category: <select id='category' v-model="category">
-				  <option value='Growing your network'>Growing your network</option>
-				  <option value='Know your network'>Know your network</option>
-				  <option value='Stay in touch with your network'>Stay in touch with your network</option>
+	Blog category: 
+	<br>
+	<br>
+	<select id='category' v-model="category">				  
 			  </select>
+	<br>
+	<br>
+	Add new category: <input type="text" id='newCategory' placeholder="Add new category"><button id='addCategory' @click='addCategory'>Add</button>
 	<br>
 	<br>
 	Blog cover image (must be 16:9, ideally 515x257): <vue-base64-file-upload 
@@ -29,53 +32,87 @@
 </template>
 
 <script>
-
-
+import axios from "axios";
 
 export default {
 	name: "editor",
 	data: function() {
 		return {
-			_id:"",
-			name:"",
+			_id: "",
+			name: "",
 			html: "",
-			cover:"",
-			preview:"",
-			category:""
+			cover: "",
+			preview: "",
+			category: "",
+			newCategory: ""
 		};
-	}, 
-	mounted:function(){
-		if(document.querySelector('#editedBlog')){
-			this._id = document.querySelector('#editedBlogID').innerHTML;
-			this.name = document.querySelector('#editedBlogName').innerHTML;
-			this.preview = document.querySelector('#editedBlogPreview').innerHTML;
-			this.cover = document.querySelector('#editedBlogCover').innerHTML;
-			this.category = document.querySelector('#editedBlogCategory').innerHTML;
-			this.html = document.querySelector('#editedBlogHTML').innerHTML;
-		}
 	},
-	methods:{
-		onImgLoad:function(dataURI){
+	mounted: function() {
+		axios
+			.get("/blogCategories")
+			.then(response => {
+				response.data.forEach(cat => {
+					document.querySelector("#category").innerHTML = document.querySelector("#category").innerHTML + `<option value='${cat.name}'>${cat.name}</option>`;
+				});
+
+				if (document.querySelector("#editedBlog")) {
+					this._id = document.querySelector("#editedBlogID").innerHTML;
+					this.name = document.querySelector("#editedBlogName").innerHTML;
+					this.preview = document.querySelector("#editedBlogPreview").innerHTML;
+					this.cover = document.querySelector("#editedBlogCover").innerHTML;
+					this.category = document.querySelector("#editedBlogCategory").innerHTML;
+					this.html = document.querySelector("#editedBlogHTML").innerHTML;
+				}
+			})
+			.catch(error => {
+				console.log(error);
+			});
+	},
+	methods: {
+		onImgLoad: function(dataURI) {
 			this.cover = dataURI;
 		},
-		uploadPost:function(){
-			document.querySelector('#save').disabled = true;
-			document.querySelector('#save').textContent = 'Uploading...';
-			fetch("/newBlogPost",
-				{
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json'
-					},
-					credentials: "same-origin",
-					method: "POST",
-					body: JSON.stringify({_id:this._id,name:this.name,html: this.html,preview:this.preview,cover:this.cover,category:this.category})
-				})
-				.then(function(res){ 
+		uploadPost: function() {
+			document.querySelector("#save").disabled = true;
+			document.querySelector("#save").textContent = "Uploading...";
+			fetch("/newBlogPost", {
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json"
+				},
+				credentials: "same-origin",
+				method: "POST",
+				body: JSON.stringify({ _id: this._id, name: this.name, html: this.html, preview: this.preview, cover: this.cover, category: this.category })
+			})
+				.then(function(res) {
 					console.log(res);
-					window.location.href = '/blogs';
-				 })
-				.catch(function(res){ console.log(res);document.querySelector('#save').disabled = false; })
+					window.location.href = "/blogs";
+				})
+				.catch(function(err) {
+					console.log(err);
+					document.querySelector("#save").disabled = false;
+				});
+		},
+		addCategory: function() {
+			let newCategory = document.querySelector("#newCategory").value;
+			document.querySelector("#newCategory").value = "";
+			document.querySelector("#category").innerHTML = document.querySelector("#category").innerHTML + `<option value='${newCategory}'>${newCategory}</option>`;
+			this.category = newCategory;
+			fetch("/newCategory", {
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json"
+				},
+				credentials: "same-origin",
+				method: "POST",
+				body: JSON.stringify({ newCategoryName: newCategory })
+			})
+				.then(function(res) {
+					console.log(res);
+				})
+				.catch(function(err) {
+					console.log(err);
+				});
 		}
 	}
 };
@@ -87,12 +124,15 @@ export default {
 	margin-left: 10%;
 }
 
-input[type='text'],input[type='file'],select{
+input[type="text"],
+input[type="file"],
+select {
 	border-radius: 5px;
-	width:30% !important;
+	width: 30% !important;
 }
 
-#save {
+#save,
+#addCategory {
 	display: inline-block;
 	padding: 0.3em 1.2em;
 	margin: 0 0.3em 0.3em 0;
@@ -105,9 +145,13 @@ input[type='text'],input[type='file'],select{
 	background-color: #e6f14e;
 	text-align: center;
 	transition: all 0.2s;
-	margin-top: 20px;
 	cursor: pointer;
 }
+
+#save {
+	margin-top: 20px;
+}
+
 #save:hover {
 	background-color: rgb(198, 196, 64);
 }
