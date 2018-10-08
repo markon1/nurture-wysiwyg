@@ -19,5 +19,3 @@ new Vue({
   },
   template: `<Editor/>`
 });
-
-const apiURL = "/connections/";

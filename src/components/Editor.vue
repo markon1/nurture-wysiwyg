@@ -49,7 +49,7 @@ export default {
 	},
 	mounted: function() {
 		axios
-			.get("/blogCategories")
+			.get("/categories")
 			.then(response => {
 				response.data.forEach(cat => {
 					document.querySelector("#category").innerHTML = document.querySelector("#category").innerHTML + `<option value='${cat.name}'>${cat.name}</option>`;
@@ -98,14 +98,14 @@ export default {
 			document.querySelector("#newCategory").value = "";
 			document.querySelector("#category").innerHTML = document.querySelector("#category").innerHTML + `<option value='${newCategory}'>${newCategory}</option>`;
 			this.category = newCategory;
-			fetch("/newCategory", {
+			fetch("/categories", {
 				headers: {
 					Accept: "application/json",
 					"Content-Type": "application/json"
 				},
 				credentials: "same-origin",
 				method: "POST",
-				body: JSON.stringify({ newCategoryName: newCategory })
+				body: JSON.stringify({ name: newCategory })
 			})
 				.then(function(res) {
 					console.log(res);
